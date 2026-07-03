@@ -533,9 +533,12 @@ PluginComponent {
 
   function launchApp(appId: string): void {
     if (!appId || appId === "unknown") return
-    var desktopName = Paths.moddedAppId(appId)
-    __launcher.command = ["gtk-launch", desktopName]
-    __launcher.running = true
+    try {
+      var desktopName = Paths.moddedAppId(appId)
+      if (!desktopName) desktopName = appId
+      __launcher.command = ["gtk-launch", desktopName]
+      __launcher.running = true
+    } catch (_) {}
   }
 
   function __onWindow(info: var): void {
@@ -1006,7 +1009,11 @@ PluginComponent {
                 radius: 10
                 color: root.mutedFill
                 opacity: 0
-                transform: Translate { id: appSlide; y: -20 }
+                transform: Translate {
+                  id: appSlide
+                  y: -20
+                  Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                }
 
                 Timer {
                   interval: index * 40
@@ -1018,7 +1025,6 @@ PluginComponent {
                 }
 
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                Behavior on appSlide.y { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
 
                 Column {
                   anchors.fill: parent
@@ -1181,7 +1187,11 @@ PluginComponent {
                   radius: 8
                   color: root.mutedFill
                   opacity: 0
-                  transform: Translate { id: detailSlide; y: -15 }
+                  transform: Translate {
+                    id: detailSlide
+                    y: -15
+                    Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
+                  }
 
                   Timer {
                     interval: index * 30
@@ -1193,7 +1203,6 @@ PluginComponent {
                   }
 
                   Behavior on opacity { NumberAnimation { duration: 180 } }
-                  Behavior on detailSlide.y { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
 
                   Row {
                     anchors.fill: parent
