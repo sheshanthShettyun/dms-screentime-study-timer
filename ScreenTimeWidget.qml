@@ -51,6 +51,7 @@ PluginComponent {
   property int studyTimerDuration: 0
   property bool studyTimerRunning: false
   property string studySubMode: "pomodoro"
+  property string studyTimerInput: ""
 
   PluginGlobalVar { id: globalTodayTotal; varName: "todayTotal"; defaultValue: 0 }
   PluginGlobalVar { id: globalCurrentApp; varName: "currentApp"; defaultValue: "" }
@@ -256,6 +257,24 @@ PluginComponent {
     studyTimerRemaining = seconds
     studyTimerState = "idle"
     studyTimerRunning = false
+  }
+
+  function applyStudyTimerInput(): void {
+    var raw = studyTimerInput.trim().toLowerCase()
+    if (!raw) return
+    var hMatch = raw.match(/(\d+)\s*h/)
+    var mMatch = raw.match(/(\d+)\s*m(?!\s*h)/)
+    var h = hMatch ? parseInt(hMatch[1]) : 0
+    var m = mMatch ? parseInt(mMatch[1]) : 0
+    if (h > 0 || m > 0) {
+      var total = (h * 3600) + (m * 60)
+      setStudyTimerPreset(total)
+      return
+    }
+    var num = Number(raw)
+    if (isFinite(num) && num >= 0) {
+      setStudyTimerPreset(Math.floor(num))
+    }
   }
 
   // ═══════════════════════════════════════
@@ -1493,34 +1512,17 @@ PluginComponent {
                   Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 6
-                    Repeater {
-                      model: [
-                        { label: "15m", sec: 900 },
-                        { label: "30m", sec: 1800 },
-                        { label: "45m", sec: 2700 },
-                        { label: "60m", sec: 3600 },
-                        { label: "90m", sec: 5400 }
-                      ]
-                      delegate: Rectangle {
-                        width: 46; height: 28; radius: 14
-                        color: root.studyTimerDuration === modelData.sec
-                          ? root.accentColor
-                          : Qt.rgba(1, 1, 1, 0.06)
-                        MouseArea {
-                          anchors.fill: parent
-                          cursorShape: Qt.PointingHandCursor
-                          onClicked: root.setStudyTimerPreset(modelData.sec)
-                        }
-                        StyledText {
-                          anchors.centerIn: parent
-                          text: modelData.label
-                          color: root.studyTimerDuration === modelData.sec
-                            ? "#fff"
-                            : Theme.surfaceText
-                          font.pixelSize: 10
-                          font.bold: root.studyTimerDuration === modelData.sec
-                        }
-                      }
+                    DankTextField {
+                      width: 180
+                      height: 32
+                      text: root.studyTimerInput
+                      placeholderText: "e.g. 30m, 1h 30m, 45m"
+                      font.pixelSize: 12
+                      backgroundColor: root.mutedFill
+                      normalBorderColor: "transparent"
+                      cornerRadius: 8
+                      onTextEdited: root.studyTimerInput = text
+                      onEditingFinished: root.applyStudyTimerInput()
                     }
                   }
 
