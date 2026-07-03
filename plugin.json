@@ -1,0 +1,15 @@
+{
+  "id": "screenTimeTracker",
+  "name": "Screen Time Tracker",
+  "description": "Track time spent in applications. View daily and weekly screen time breakdowns with per-app stats, daily goals, and focus mode awareness.",
+  "version": "1.0.0",
+  "author": "sriyaan",
+  "icon": "timer",
+  "type": "widget",
+  "component": "./ScreenTimeWidget.qml",
+  "daemon": "./ScreenTimeDaemon.qml",
+  "settings": "./ScreenTimeSettings.qml",
+  "capabilities": ["dankbar-widget", "daemon", "ipc"],
+  "permissions": ["settings_read", "settings_write", "process"],
+  "requires_dms": ">=1.2.0"
+}
