@@ -526,6 +526,18 @@ PluginComponent {
     }
   }
 
+  Process {
+    id: __launcher
+    running: false
+  }
+
+  function launchApp(appId: string): void {
+    if (!appId || appId === "unknown") return
+    var desktopName = Paths.moddedAppId(appId)
+    __launcher.command = ["gtk-launch", desktopName]
+    __launcher.running = true
+  }
+
   function __onWindow(info: var): void {
     var appId = String(info.class || "unknown").toLowerCase()
     var now = Date.now()
@@ -993,6 +1005,20 @@ PluginComponent {
                 height: 54
                 radius: 10
                 color: root.mutedFill
+                opacity: 0
+                transform: Translate { id: appSlide; y: -20 }
+
+                Timer {
+                  interval: index * 40
+                  running: true
+                  onTriggered: {
+                    parent.opacity = 1
+                    appSlide.y = 0
+                  }
+                }
+
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+                Behavior on appSlide.y { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
 
                 Column {
                   anchors.fill: parent
@@ -1048,6 +1074,12 @@ PluginComponent {
                       color: root.accentColor
                     }
                   }
+                }
+
+                MouseArea {
+                  anchors.fill: parent
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.launchApp(modelData.app)
                 }
               }
             }
@@ -1148,6 +1180,20 @@ PluginComponent {
                   height: 32
                   radius: 8
                   color: root.mutedFill
+                  opacity: 0
+                  transform: Translate { id: detailSlide; y: -15 }
+
+                  Timer {
+                    interval: index * 30
+                    running: true
+                    onTriggered: {
+                      parent.opacity = 1
+                      detailSlide.y = 0
+                    }
+                  }
+
+                  Behavior on opacity { NumberAnimation { duration: 180 } }
+                  Behavior on detailSlide.y { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
 
                   Row {
                     anchors.fill: parent
@@ -1183,6 +1229,12 @@ PluginComponent {
                   horizontalAlignment: Text.AlignRight
                   anchors.verticalCenter: parent.verticalCenter
                 }
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.launchApp(modelData.app)
               }
             }
           }
