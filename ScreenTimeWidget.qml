@@ -52,6 +52,7 @@ PluginComponent {
   property bool studyTimerRunning: false
   property string studySubMode: "pomodoro"
   property string studyTimerInput: ""
+  property bool appsExpanded: false
 
   PluginGlobalVar { id: globalTodayTotal; varName: "todayTotal"; defaultValue: 0 }
   PluginGlobalVar { id: globalCurrentApp; varName: "currentApp"; defaultValue: "" }
@@ -995,7 +996,9 @@ PluginComponent {
           color: Theme.surfaceContainer
           border.color: root.panelBorder
           border.width: 1
-          implicitHeight: appsCol.implicitHeight + 24
+          height: appsCol.implicitHeight + 24
+          clip: true
+          Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
 
           Column {
             id: appsCol
@@ -1005,11 +1008,29 @@ PluginComponent {
             anchors.margins: 12
             spacing: 10
 
-            StyledText {
-              text: "Apps today"
-              color: Theme.surfaceText
-              font.pixelSize: 12
-              font.bold: true
+            Row {
+              width: parent.width
+              spacing: 6
+
+              StyledText {
+                text: "Apps today"
+                color: Theme.surfaceText
+                font.pixelSize: 12
+                font.bold: true
+              }
+
+              StyledText {
+                text: root.appsExpanded ? "▲" : "▼"
+                color: Theme.surfaceVariantText
+                font.pixelSize: 9
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.appsExpanded = !root.appsExpanded
+              }
             }
 
             StyledText {
@@ -1019,92 +1040,105 @@ PluginComponent {
               font.pixelSize: 10
             }
 
-            Repeater {
-              model: root.sortedApps
+            Item {
+              clip: true
+              width: parent.width
+              height: root.appsExpanded ? wrapCol.implicitHeight : 0
+              Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
 
-              delegate: Rectangle {
-                width: appsCol.width
-                height: 54
-                radius: 10
-                color: root.mutedFill
-                opacity: 0
-                transform: Translate {
-                  id: appSlide
-                  y: -20
-                  Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
-                }
+              Column {
+                id: wrapCol
+                width: parent.width
+                spacing: 10
 
-                Timer {
-                  interval: index * 40
-                  running: true
-                  onTriggered: {
-                    parent.opacity = 1
-                    appSlide.y = 0
-                  }
-                }
+                Repeater {
+                  model: root.sortedApps
 
-                Behavior on opacity { NumberAnimation { duration: 200 } }
+                  delegate: Rectangle {
+                    width: appsCol.width
+                    height: 54
+                    radius: 10
+                    color: root.mutedFill
+                    opacity: 0
+                    transform: Translate {
+                      id: appSlide
+                      y: -20
+                      Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                    }
 
-                Column {
-                  anchors.fill: parent
-                  anchors.margins: 8
-                  spacing: 6
-
-                  Row {
-                    width: parent.width
-                    spacing: 6
-
-                    AppIconRenderer {
-                      width: 20
-                      height: 20
-                      iconValue: {
-                        var entry = DesktopEntries.heuristicLookup(Paths.moddedAppId(modelData.app))
-                        return entry?.icon || modelData.app
+                    Timer {
+                      interval: index * 40
+                      running: true
+                      onTriggered: {
+                        parent.opacity = 1
+                        appSlide.y = 0
                       }
-                      iconSize: 20
-                      fallbackText: root.getDisplayAppName(modelData.app).charAt(0)
-                      anchors.verticalCenter: parent.verticalCenter
                     }
 
-                    StyledText {
-                      text: root.getDisplayAppName(modelData.app)
-                      color: Theme.surfaceText
-                      font.pixelSize: 12
-                      font.bold: true
-                      width: parent.width - 80
-                      elide: Text.ElideRight
-                      anchors.verticalCenter: parent.verticalCenter
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+
+                    Column {
+                      anchors.fill: parent
+                      anchors.margins: 8
+                      spacing: 6
+
+                      Row {
+                        width: parent.width
+                        spacing: 6
+
+                        AppIconRenderer {
+                          width: 20
+                          height: 20
+                          iconValue: {
+                            var entry = DesktopEntries.heuristicLookup(Paths.moddedAppId(modelData.app))
+                            return entry?.icon || modelData.app
+                          }
+                          iconSize: 20
+                          fallbackText: root.getDisplayAppName(modelData.app).charAt(0)
+                          anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        StyledText {
+                          text: root.getDisplayAppName(modelData.app)
+                          color: Theme.surfaceText
+                          font.pixelSize: 12
+                          font.bold: true
+                          width: parent.width - 80
+                          elide: Text.ElideRight
+                          anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        StyledText {
+                          text: root.fmtShort(modelData.time)
+                          color: Theme.surfaceVariantText
+                          font.pixelSize: 10
+                          width: 46
+                          horizontalAlignment: Text.AlignRight
+                          anchors.verticalCenter: parent.verticalCenter
+                        }
+                      }
+
+                      Rectangle {
+                        width: parent.width
+                        height: 8
+                        radius: 4
+                        color: Qt.rgba(1, 1, 1, 0.08)
+
+                        Rectangle {
+                          width: Math.max(8, parent.width * (modelData.time / Math.max(root.liveTodayTotal(), 1)))
+                          height: parent.height
+                          radius: 4
+                          color: root.accentColor
+                        }
+                      }
                     }
 
-                    StyledText {
-                      text: root.fmtShort(modelData.time)
-                      color: Theme.surfaceVariantText
-                      font.pixelSize: 10
-                      width: 46
-                      horizontalAlignment: Text.AlignRight
-                      anchors.verticalCenter: parent.verticalCenter
+                    MouseArea {
+                      anchors.fill: parent
+                      cursorShape: Qt.PointingHandCursor
+                      onClicked: root.launchApp(modelData.app)
                     }
                   }
-
-                  Rectangle {
-                    width: parent.width
-                    height: 8
-                    radius: 4
-                    color: Qt.rgba(1, 1, 1, 0.08)
-
-                    Rectangle {
-                      width: Math.max(8, parent.width * (modelData.time / Math.max(root.liveTodayTotal(), 1)))
-                      height: parent.height
-                      radius: 4
-                      color: root.accentColor
-                    }
-                  }
-                }
-
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.launchApp(modelData.app)
                 }
               }
             }
