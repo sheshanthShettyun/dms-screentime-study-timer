@@ -996,7 +996,7 @@ PluginComponent {
           color: Theme.surfaceContainer
           border.color: root.panelBorder
           border.width: 1
-          height: appsCol.implicitHeight + 24
+          height: 24 + headerRow.height + 10 + (root.appsExpanded ? wrapCol.implicitHeight + 10 : 0)
           clip: true
           Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
 
@@ -1009,6 +1009,7 @@ PluginComponent {
             spacing: 10
 
             Row {
+              id: headerRow
               width: parent.width
               spacing: 6
 
