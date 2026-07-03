@@ -35,6 +35,7 @@
   - 40ms stagger per item via Timer in delegates
   - `Behavior on opacity` (200ms) + `Behavior on Translate.y` (250ms, OutQuad)
 - **Detail list items**: same pattern with 30ms stagger, smaller slide (-15px)
+- **Apps today collapse**: clip + height animation (300ms, InOutQuad) on the outer Rectangle; inner `Item` with clipped height (250ms, OutQuad) controls revealed content
 
 ## Key Dependencies
 - `gtk-launch` for opening apps from WM_CLASS
